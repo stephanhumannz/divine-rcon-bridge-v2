@@ -1,26 +1,29 @@
+import { NextResponse } from 'next/server';
 import { Rcon } from 'rcon-client';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.SUPABASE_URL || '', 
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-);
+const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!);
 
-// This handler allows you to test the link in your browser (GET)
-export async function GET() {
-  return new Response(JSON.stringify({ status: "Bridge Online" }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' }
+// This handles the "OPTIONS" request seen in your logs
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
   });
 }
 
-// This handler processes the RCON commands from your website (POST)
 export async function POST(req: Request) {
   try {
     const { command } = await req.json();
     const { data: config, error } = await supabase.from('server_configs').select('*').single();
 
-    if (error || !config) return new Response(JSON.stringify({ error: 'No Config Found' }), { status: 404 });
+    if (error || !config) {
+      return NextResponse.json({ error: 'Server configuration not found' }, { status: 404 });
+    }
 
     const rcon = await Rcon.connect({
       host: config.ip,
@@ -31,27 +34,13 @@ export async function POST(req: Request) {
     const output = await rcon.send(command);
     await rcon.end();
 
-    return new Response(JSON.stringify({ output }), {
-      headers: { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      }
+    return NextResponse.json({ output }, {
+      headers: { 'Access-Control-Allow-Origin': '*' }
     });
   } catch (e: any) {
-    return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+    return NextResponse.json({ error: e.message }, { 
+      status: 500, 
+      headers: { 'Access-Control-Allow-Origin': '*' } 
+    });
   }
-}
-
-// Handles browser security checks
-export async function OPTIONS() {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    }
-  });
 }
