@@ -1,16 +1,21 @@
 {
   "name": "divine-rcon-bridge",
   "version": "1.0.0",
+  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start"
   },
   "dependencies": {
-    "next": "latest",
-    "react": "latest",
-    "react-dom": "latest",
+    "next": "14.2.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
     "rcon-client": "^1.1.0",
-    "@supabase/supabase-js": "latest"
+    "@supabase/supabase-js": "^2.43.1",
+    "typescript": "5.4.5",
+    "@types/node": "20.12.12",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0"
   }
 }
